@@ -55,7 +55,6 @@ func (p *P) DelThread(t *Thread) {
 	defer p.mu.Unlock()
 
 	delete(p.threads, t.ID())
-	p.restart()
 }
 
 func (p *P) Start(ctx context.Context, wg *sync.WaitGroup) {
@@ -112,8 +111,8 @@ func (p *P) Start(ctx context.Context, wg *sync.WaitGroup) {
 				localWg.Wait()
 				return
 			case <-p.buf:
-				cancel()
 				localWg.Wait()
+				cancel()
 			}
 		}
 	}()

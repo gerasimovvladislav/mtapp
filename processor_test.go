@@ -9,12 +9,31 @@ import (
 
 // Тестирование добавления и удаления потоков, а также работы процессора
 func TestProcessor(t *testing.T) {
+	numTicks := 0
+
 	// Создаем процессор
 	processor := NewProcessor()
 
 	// Создаем несколько потоков
-	thread1 := &Thread{id: ThreadID("first"), interval: 100 * time.Millisecond, limit: 2}
-	thread2 := &Thread{id: ThreadID("second"), interval: 200 * time.Millisecond, limit: 1}
+	thread1 := NewThread("first", NewProcess(func(ctx context.Context) (cancelFunc context.CancelFunc) {
+		ctx, cancelFunc = context.WithCancel(ctx)
+
+		// Логируем, чтобы отслеживать, что происходит
+		numTicks++
+		t.Log("First thread tick")
+
+		return
+	}), 100*time.Millisecond, 1)
+
+	thread2 := NewThread("second", NewProcess(func(ctx context.Context) (cancelFunc context.CancelFunc) {
+		ctx, cancelFunc = context.WithCancel(ctx)
+
+		// Логируем, чтобы отслеживать, что происходит
+		numTicks++
+		t.Log("Second thread tick")
+
+		return
+	}), 100*time.Millisecond, 1)
 
 	// Добавляем потоки в процессор
 	processor.AddThread(thread1)
@@ -41,7 +60,15 @@ func TestProcessor(t *testing.T) {
 	}
 
 	// Добавляем новый поток и проверяем его наличие
-	thread3 := &Thread{id: ThreadID("third"), interval: 50 * time.Millisecond, limit: 3}
+	thread3 := NewThread("third", NewProcess(func(ctx context.Context) (cancelFunc context.CancelFunc) {
+		ctx, cancelFunc = context.WithCancel(ctx)
+
+		// Логируем, чтобы отслеживать, что происходит
+		numTicks++
+		t.Log("Third thread tick")
+
+		return
+	}), 100*time.Millisecond, 1)
 	processor.AddThread(thread3)
 
 	// Проверяем, что поток добавлен
@@ -55,6 +82,9 @@ func TestProcessor(t *testing.T) {
 		t.Errorf("expected to find thread with ID %v", thread3.ID().String())
 	}
 
+	// Добавляем дополнительную задержку для наблюдения
+	time.Sleep(300 * time.Millisecond)
+
 	// Останавливаем процессор
 	cancel()
 	wg.Wait()
@@ -62,5 +92,10 @@ func TestProcessor(t *testing.T) {
 	// Проверяем, что все потоки завершены
 	if len(processor.threads) != 0 {
 		t.Errorf("expected 0 threads, got %d", len(processor.threads))
+	}
+
+	// Проверяем, что счетчик сработал
+	if numTicks != 3 {
+		t.Errorf("expected 3 ticks, got %d", numTicks)
 	}
 }

@@ -16,9 +16,20 @@ func main() {
 
 	wg := &sync.WaitGroup{}
 
-	mtapp.NewApp(repeater.Init(time.Second, 3)).Start(ctx, wg)
+	repeat := repeater.Init(time.Millisecond, 3, repeater.Tick)
+	mtapp.NewApp(repeat).Start(ctx, wg)
 
 	slog.Info("Application started")
+
+	time.Sleep(300 * time.Millisecond)
+
+	repeat.AddThread(mtapp.NewThread("Other", mtapp.NewProcess(func(ctx context.Context) (cancelFunc context.CancelFunc) {
+		ctx, cancelFunc = context.WithCancel(ctx)
+
+		slog.Info("New Tick...")
+
+		return
+	}), time.Second, 3))
 
 	go func() {
 		<-ctx.Done()

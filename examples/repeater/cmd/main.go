@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/gerasimovvladislav/mtapp"
-	"github.com/gerasimovvladislav/mtapp/examples/clapper"
+	"github.com/gerasimovvladislav/mtapp/examples/repeater"
 )
 
 func main() {
@@ -16,7 +16,7 @@ func main() {
 
 	wg := &sync.WaitGroup{}
 
-	mtapp.NewApp(clapper.Init(time.Second, 3)).Start(ctx, wg)
+	mtapp.NewApp(repeater.Init(time.Second, 3)).Start(ctx, wg)
 
 	slog.Info("Application started")
 

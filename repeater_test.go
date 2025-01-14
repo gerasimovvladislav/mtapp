@@ -8,7 +8,7 @@ import (
 )
 
 // Тестирование добавления и удаления потоков, а также работы процессора
-func TestProcessor(t *testing.T) {
+func TestRepeater(t *testing.T) {
 	numTicks := 0
 
 	// Создаем процессор

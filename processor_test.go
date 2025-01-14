@@ -68,7 +68,7 @@ func TestProcessor(t *testing.T) {
 		t.Log("Third thread tick")
 
 		return
-	}), 100*time.Millisecond, 1)
+	}), 100*time.Millisecond, 0)
 	processor.AddThread(thread3)
 
 	// Проверяем, что поток добавлен
@@ -83,7 +83,18 @@ func TestProcessor(t *testing.T) {
 	}
 
 	// Добавляем дополнительную задержку для наблюдения
-	time.Sleep(300 * time.Millisecond)
+	time.Sleep(100 * time.Millisecond)
+
+	// Удаляем поток
+	processor.DelThread(thread3)
+
+	// Подождем немного, чтобы потоки успели выполнить свою работу
+	time.Sleep(100 * time.Millisecond)
+
+	// Проверяем, что поток удален
+	if len(processor.threads) != 0 {
+		t.Errorf("expected 0 threads, got %d", len(processor.threads))
+	}
 
 	// Останавливаем процессор
 	cancel()
@@ -95,7 +106,7 @@ func TestProcessor(t *testing.T) {
 	}
 
 	// Проверяем, что счетчик сработал
-	if numTicks != 3 {
+	if numTicks != 4 {
 		t.Errorf("expected 3 ticks, got %d", numTicks)
 	}
 }

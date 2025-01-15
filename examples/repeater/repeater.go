@@ -7,11 +7,9 @@ import (
 	"github.com/gerasimovvladislav/mtapp"
 )
 
-var ID mtapp.ThreadID = "Repeater"
-
-func Init(interval time.Duration, limit int, run func(ctx context.Context) (cancelFunc context.CancelFunc)) *mtapp.P {
+func Init(tid mtapp.ThreadID, interval time.Duration, limit int, run func(ctx context.Context) (cancelFunc context.CancelFunc)) *mtapp.P {
 	processor := mtapp.NewProcessor()
-	processor.AddThread(mtapp.NewThread(ID, mtapp.NewProcess(run), interval, limit))
+	processor.AddThread(mtapp.NewThread(tid, mtapp.NewProcess(run), interval, limit))
 
 	return processor
 }

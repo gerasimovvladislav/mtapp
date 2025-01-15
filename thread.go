@@ -49,6 +49,8 @@ func (t *Thread) Work(ctx context.Context) {
 	defer t.mu.RUnlock()
 
 	if !t.process.IsRunning() {
+		start := time.Now()
 		t.process.Run(ctx)
+		recordProcessLatency(t.id, time.Since(start))
 	}
 }

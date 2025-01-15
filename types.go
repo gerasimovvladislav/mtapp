@@ -4,12 +4,12 @@ import "github.com/google/uuid"
 
 type ProcessID uuid.UUID
 
-func (id ProcessID) String() string {
-	return id.String()
+func (pid ProcessID) String() string {
+	return pid.String()
 }
 
 type ThreadID string
 
-func (id ThreadID) String() string {
-	return id.String()
+func (tid ThreadID) String() string {
+	return string(tid)
 }

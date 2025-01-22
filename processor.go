@@ -10,7 +10,7 @@ type Processor interface {
 	Start(ctx context.Context, wg *sync.WaitGroup)
 	AddThread(t *Thread)
 	GetThread(ID ThreadID) *Thread
-	DelThread(t *Thread)
+	DelThread(ID ThreadID)
 }
 
 type P struct {
@@ -50,11 +50,11 @@ func (p *P) GetThread(ID ThreadID) *Thread {
 	return p.threads[ID]
 }
 
-func (p *P) DelThread(t *Thread) {
+func (p *P) DelThread(ID ThreadID) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
-	delete(p.threads, t.ID())
+	delete(p.threads, ID)
 }
 
 func (p *P) Start(ctx context.Context, wg *sync.WaitGroup) {
@@ -88,14 +88,14 @@ func (p *P) Start(ctx context.Context, wg *sync.WaitGroup) {
 					for {
 						select {
 						case <-startCtx.Done():
-							p.DelThread(t)
+							p.DelThread(t.ID())
 							return
 						case <-ticker.C:
 							t.Work(startCtx)
 							if limit > 0 {
 								limit--
 								if limit == 0 {
-									p.DelThread(t)
+									p.DelThread(t.ID())
 
 									return
 								}

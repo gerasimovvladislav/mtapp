@@ -12,6 +12,7 @@ type Processor interface {
 	Thread(ID ThreadID) *Thread
 	Threads() map[ThreadID]*Thread
 	StopThread(ID ThreadID)
+	StartThread(ID ThreadID)
 	DeleteThread(ID ThreadID)
 }
 
@@ -57,6 +58,15 @@ func (p *P) Threads() map[ThreadID]*Thread {
 	defer p.mu.RUnlock()
 
 	return p.threads
+}
+
+func (p *P) StartThread(ID ThreadID) {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+
+	if t := p.threads[ID]; t != nil {
+		t.Start()
+	}
 }
 
 func (p *P) StopThread(ID ThreadID) {

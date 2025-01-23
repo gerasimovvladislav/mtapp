@@ -13,8 +13,8 @@ import (
 // Тестирование добавления и удаления потоков, а также работы репитера
 func TestRepeater(t *testing.T) {
 	// Создаем процессор
-	repeater := Init(100*time.Millisecond, 3, Tick)
-	defaultThread := repeater.GetThread(ID)
+	repeater := Init("Main", 100*time.Millisecond, 3, Tick)
+	defaultThread := repeater.Thread("Main")
 
 	// Проверяем, что поток был добавлен в процессор
 	assert.NotNil(t, defaultThread)
@@ -31,14 +31,14 @@ func TestRepeater(t *testing.T) {
 	time.Sleep(500 * time.Millisecond)
 
 	// Проверяем, что потоки удалились по завершению
-	assert.Nil(t, repeater.GetThread(ID))
+	assert.Nil(t, repeater.Thread("Main"))
 
 	// Добавляем новый поток и проверяем его наличие
 	otherThread := mtapp.NewThread("Other", mtapp.NewProcess(Tick), 100*time.Millisecond, 1)
 	repeater.AddThread(otherThread)
 
 	// Проверяем, что поток был добавлен в процессор
-	assert.NotNil(t, repeater.GetThread("Other"))
+	assert.NotNil(t, repeater.Thread("Other"))
 
 	// Останавливаем процессор
 	cancel()

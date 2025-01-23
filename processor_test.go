@@ -110,3 +110,76 @@ func TestProcessor(t *testing.T) {
 		t.Errorf("expected 3 ticks, got %d", numTicks)
 	}
 }
+
+func TestProcessor_StartStopThreads(t *testing.T) {
+	numTicks := 0
+
+	// Создаем процессор
+	processor := NewProcessor()
+
+	// Создаем поток
+	thread := NewThread("test", NewProcess(func(ctx context.Context) (cancelFunc context.CancelFunc) {
+		ctx, cancelFunc = context.WithCancel(ctx)
+
+		// Логируем, чтобы отслеживать, что происходит
+		numTicks++
+		t.Log("Test thread tick")
+
+		return
+	}), 100*time.Millisecond, 0)
+
+	// Добавляем поток в процессор
+	processor.AddThread(thread)
+
+	// Проверяем, что поток был добавлен
+	if len(processor.threads) != 1 {
+		t.Errorf("expected 1 thread, got %d", len(processor.threads))
+	}
+
+	// Запускаем процессор
+	wg := &sync.WaitGroup{}
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	processor.Start(ctx, wg)
+
+	// Ждем немного, чтобы поток выполнил несколько операций
+	time.Sleep(300 * time.Millisecond)
+
+	// Проверяем, что поток был активен
+	if numTicks == 0 {
+		t.Errorf("expected ticks > 0, got %d", numTicks)
+	}
+
+	// Останавливаем поток
+	processor.StopThread(thread.ID())
+	numTicksBeforeStop := numTicks
+
+	// Ждем, чтобы убедиться, что поток больше не работает
+	time.Sleep(300 * time.Millisecond)
+
+	if numTicks != numTicksBeforeStop {
+		t.Errorf("expected ticks to remain %d after stopping thread, but got %d", numTicksBeforeStop, numTicks)
+	}
+
+	// Снова запускаем поток
+	processor.StartThread(thread.ID())
+
+	// Ждем немного, чтобы поток снова начал работать
+	time.Sleep(300 * time.Millisecond)
+
+	// Проверяем, что поток снова активен
+	if numTicks <= numTicksBeforeStop {
+		t.Errorf("expected ticks to increase after starting thread, but got %d", numTicks)
+	}
+
+	// Удаляем поток и завершаем процессор
+	processor.DeleteThread(thread.ID())
+	cancel()
+	wg.Wait()
+
+	// Проверяем, что все потоки завершены
+	if len(processor.threads) != 0 {
+		t.Errorf("expected 0 threads, got %d", len(processor.threads))
+	}
+}

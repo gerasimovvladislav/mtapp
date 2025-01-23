@@ -16,7 +16,7 @@ func main() {
 
 	wg := &sync.WaitGroup{}
 
-	repeat := repeater.Init(time.Millisecond, 3, repeater.Tick)
+	repeat := repeater.Init("Main", time.Millisecond, 3, repeater.Tick)
 	mtapp.NewApp(repeat).Start(ctx, wg)
 
 	slog.Info("Application started")

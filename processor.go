@@ -11,7 +11,7 @@ type Processor interface {
 	AddThread(t *Thread)
 	Thread(ID ThreadID) *Thread
 	Threads() map[ThreadID]*Thread
-	StopThread(ID ThreadID) error
+	StopThread(ID ThreadID)
 	DeleteThread(ID ThreadID)
 }
 

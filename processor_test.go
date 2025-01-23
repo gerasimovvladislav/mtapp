@@ -77,7 +77,7 @@ func TestProcessor(t *testing.T) {
 	}
 
 	// Проверяем, что поток можно найти
-	foundThread := processor.GetThread(thread3.ID())
+	foundThread := processor.Thread(thread3.ID())
 	if foundThread == nil {
 		t.Errorf("expected to find thread with ID %v", thread3.ID().String())
 	}

@@ -109,7 +109,7 @@ func (p *P) Start(ctx context.Context, wg *sync.WaitGroup) {
 								continue
 							}
 
-							t.Run(startCtx)
+							t.Work(startCtx)
 							if limit > 0 {
 								limit--
 								if limit == 0 {

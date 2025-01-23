@@ -52,6 +52,13 @@ func (t *Thread) Paused() bool {
 	return t.paused
 }
 
+func (t *Thread) Start() {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+
+	t.paused = false
+}
+
 func (t *Thread) Stop() {
 	t.mu.Lock()
 	defer t.mu.Unlock()
@@ -59,7 +66,7 @@ func (t *Thread) Stop() {
 	t.paused = true
 }
 
-func (t *Thread) Run(ctx context.Context) {
+func (t *Thread) Work(ctx context.Context) {
 	t.mu.RLock()
 	defer t.mu.RUnlock()
 

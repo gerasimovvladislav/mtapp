@@ -86,7 +86,7 @@ func TestProcessor(t *testing.T) {
 	time.Sleep(100 * time.Millisecond)
 
 	// Удаляем поток
-	processor.DelThread(thread3.ID())
+	processor.DeleteThread(thread3.ID())
 
 	// Подождем немного, чтобы потоки успели выполнить свою работу
 	time.Sleep(100 * time.Millisecond)

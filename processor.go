@@ -9,8 +9,10 @@ import (
 type Processor interface {
 	Start(ctx context.Context, wg *sync.WaitGroup)
 	AddThread(t *Thread)
-	GetThread(ID ThreadID) *Thread
-	DelThread(ID ThreadID)
+	Thread(ID ThreadID) *Thread
+	Threads() map[ThreadID]*Thread
+	StopThread(ID ThreadID) error
+	DeleteThread(ID ThreadID)
 }
 
 type P struct {
@@ -43,35 +45,47 @@ func (p *P) AddThread(t *Thread) {
 	p.restart()
 }
 
-func (p *P) GetThread(ID ThreadID) *Thread {
+func (p *P) Thread(ID ThreadID) *Thread {
 	p.mu.RLock()
 	defer p.mu.RUnlock()
 
 	return p.threads[ID]
 }
 
-func (p *P) DelThread(ID ThreadID) {
+func (p *P) Threads() map[ThreadID]*Thread {
+	p.mu.RLock()
+	defer p.mu.RUnlock()
+
+	return p.threads
+}
+
+func (p *P) StopThread(ID ThreadID) {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+
+	if t := p.threads[ID]; t != nil {
+		t.Stop()
+	}
+}
+
+func (p *P) DeleteThread(ID ThreadID) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
 	delete(p.threads, ID)
+	p.restart()
 }
 
 func (p *P) Start(ctx context.Context, wg *sync.WaitGroup) {
+	startCtx, cancel := context.WithCancel(ctx)
+
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
 
 		for {
 			p.mu.Lock()
-			threads := make(map[ThreadID]*Thread)
-			for id, t := range p.threads {
-				threads[id] = t
-			}
-			p.mu.Unlock()
-
-			startCtx, cancel := context.WithCancel(ctx)
-			p.mu.Lock()
+			threads := p.threads
 			p.cancel = cancel
 			p.mu.Unlock()
 
@@ -88,14 +102,18 @@ func (p *P) Start(ctx context.Context, wg *sync.WaitGroup) {
 					for {
 						select {
 						case <-startCtx.Done():
-							p.DelThread(t.ID())
+							p.DeleteThread(t.ID())
 							return
 						case <-ticker.C:
-							t.Work(startCtx)
+							if t.Paused() {
+								continue
+							}
+
+							t.Run(startCtx)
 							if limit > 0 {
 								limit--
 								if limit == 0 {
-									p.DelThread(t.ID())
+									p.DeleteThread(t.ID())
 
 									return
 								}
@@ -109,6 +127,7 @@ func (p *P) Start(ctx context.Context, wg *sync.WaitGroup) {
 			case <-ctx.Done():
 				cancel()
 				localWg.Wait()
+
 				return
 			case <-p.buf:
 				localWg.Wait()

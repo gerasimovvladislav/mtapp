@@ -12,6 +12,7 @@ type Thread struct {
 	process  *Process
 	interval time.Duration
 	limit    int
+	paused   bool
 }
 
 func NewThread(ID ThreadID, p *Process, interval time.Duration, limit int) *Thread {
@@ -44,9 +45,25 @@ func (t *Thread) ID() ThreadID {
 	return t.id
 }
 
-func (t *Thread) Work(ctx context.Context) {
+func (t *Thread) Paused() bool {
 	t.mu.RLock()
 	defer t.mu.RUnlock()
+
+	return t.paused
+}
+
+func (t *Thread) Stop() {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+
+	t.paused = true
+}
+
+func (t *Thread) Run(ctx context.Context) {
+	t.mu.RLock()
+	defer t.mu.RUnlock()
+
+	t.paused = false
 
 	if !t.process.IsRunning() {
 		start := time.Now()

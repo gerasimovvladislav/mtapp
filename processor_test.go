@@ -51,11 +51,11 @@ func TestProcessor(t *testing.T) {
 	}), true, 100*time.Millisecond, 1)
 
 	// Создаем процессор с потоками
-	processor := NewProcessor(thread1, thread2, thread3)
+	processor := NewProcessor(thread1, thread2)
 
 	// Проверяем, что потоки были добавлены
-	if len(processor.threads) != 3 {
-		t.Errorf("expected 3 threads, got %d", len(processor.threads))
+	if len(processor.threads) != 2 {
+		t.Errorf("expected 2 threads, got %d", len(processor.threads))
 	}
 
 	// Запускаем процессор в отдельной горутине
@@ -73,11 +73,18 @@ func TestProcessor(t *testing.T) {
 		t.Errorf("expected 2 ticks, got %d", numTicks)
 	}
 
+	processor.AddThread(thread3)
+
+	// Проверяем, что потоки были добавлены
+	if len(processor.threads) != 3 {
+		t.Errorf("expected 3 threads, got %d", len(processor.threads))
+	}
+
 	// Снимаем с паузы третий поток
-	thread3.Start(ctx, wg)
+	thread3.Start(ctx)
 
 	// Подождем немного, чтобы потоки успели выполнить свою работу
-	time.Sleep(200 * time.Millisecond)
+	time.Sleep(300 * time.Millisecond)
 
 	// Проверяем, что поток отработал
 	if numTicks != 3 {

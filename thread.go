@@ -17,8 +17,6 @@ type Thread struct {
 
 	ctx        context.Context
 	cancelFunc context.CancelFunc
-
-	wg *sync.WaitGroup
 }
 
 func NewThread(ID ThreadID, p *Process, paused bool, interval time.Duration, limit int) *Thread {
@@ -84,20 +82,21 @@ func (t *Thread) Stop() {
 	}
 }
 
-func (t *Thread) Start(ctx context.Context, wg *sync.WaitGroup) {
+func (t *Thread) Start(ctx context.Context) {
 	t.mu.Lock()
 	defer t.mu.Unlock()
 
-	t.ctx, t.cancelFunc = context.WithCancel(ctx)
-	t.wg = wg
+	t.ctx = ctx
 	t.paused = false
-
-	t.wg.Add(1)
-	go t.run()
 }
 
-func (t *Thread) run() {
-	defer t.wg.Done()
+func (t *Thread) Run(ctx context.Context, wg *sync.WaitGroup) {
+	ctx, t.cancelFunc = context.WithCancel(ctx)
+
+	t.Start(ctx)
+
+	wg.Add(1)
+	defer wg.Done()
 
 	ticker := time.NewTicker(t.interval)
 	defer ticker.Stop()

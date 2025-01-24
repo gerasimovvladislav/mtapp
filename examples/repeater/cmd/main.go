@@ -23,14 +23,6 @@ func main() {
 
 	time.Sleep(300 * time.Millisecond)
 
-	repeat.AddThread(mtapp.NewThread("Other", mtapp.NewProcess(func(ctx context.Context) (cancelFunc context.CancelFunc) {
-		ctx, cancelFunc = context.WithCancel(ctx)
-
-		slog.Info("New Tick...")
-
-		return
-	}), time.Second, 3))
-
 	go func() {
 		<-ctx.Done()
 	}()

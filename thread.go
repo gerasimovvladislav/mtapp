@@ -7,18 +7,25 @@ import (
 )
 
 type Thread struct {
-	mu       sync.RWMutex
+	mu sync.RWMutex
+
 	id       ThreadID
 	process  *Process
 	interval time.Duration
 	limit    int
 	paused   bool
+
+	ctx        context.Context
+	cancelFunc context.CancelFunc
+
+	wg *sync.WaitGroup
 }
 
-func NewThread(ID ThreadID, p *Process, interval time.Duration, limit int) *Thread {
+func NewThread(ID ThreadID, p *Process, paused bool, interval time.Duration, limit int) *Thread {
 	return &Thread{
 		id:       ID,
 		process:  p,
+		paused:   paused,
 		interval: interval,
 		limit:    limit,
 	}
@@ -45,33 +52,81 @@ func (t *Thread) ID() ThreadID {
 	return t.id
 }
 
-func (t *Thread) Paused() bool {
+func (t *Thread) IsPaused() bool {
 	t.mu.RLock()
 	defer t.mu.RUnlock()
 
 	return t.paused
 }
 
-func (t *Thread) Start() {
-	t.mu.Lock()
-	defer t.mu.Unlock()
+func (t *Thread) IsRunning() bool {
+	t.mu.RLock()
+	defer t.mu.RUnlock()
 
-	t.paused = false
+	return t.cancelFunc != nil
 }
 
-func (t *Thread) Stop() {
+func (t *Thread) Pause() {
 	t.mu.Lock()
 	defer t.mu.Unlock()
 
 	t.paused = true
 }
 
-func (t *Thread) Work(ctx context.Context) {
-	t.mu.RLock()
-	defer t.mu.RUnlock()
+func (t *Thread) Stop() {
+	t.mu.Lock()
+	defer t.mu.Unlock()
 
+	t.Pause()
+	if t.cancelFunc != nil {
+		t.cancelFunc()
+		t.cancelFunc = nil
+	}
+}
+
+func (t *Thread) Start(ctx context.Context, wg *sync.WaitGroup) {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+
+	t.ctx, t.cancelFunc = context.WithCancel(ctx)
+	t.wg = wg
 	t.paused = false
 
+	t.wg.Add(1)
+	go t.run()
+}
+
+func (t *Thread) run() {
+	defer t.wg.Done()
+
+	ticker := time.NewTicker(t.interval)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-t.ctx.Done():
+			return
+		case <-ticker.C:
+			if t.IsPaused() {
+				continue
+			}
+
+			t.mu.Lock()
+			if t.limit > 0 {
+				t.work(t.ctx)
+				t.limit--
+			}
+			limit := t.limit
+			t.mu.Unlock()
+
+			if limit == 0 {
+				return
+			}
+		}
+	}
+}
+
+func (t *Thread) work(ctx context.Context) {
 	if !t.process.IsRunning() {
 		start := time.Now()
 		t.process.Run(ctx)

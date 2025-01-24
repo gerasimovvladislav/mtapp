@@ -10,6 +10,7 @@ type Processor interface {
 	Start(ctx context.Context, wg *sync.WaitGroup)
 	Threads() map[ThreadID]*Thread
 	Thread(ID ThreadID) *Thread
+	AddThread(t *Thread)
 	Stop()
 }
 
@@ -31,6 +32,13 @@ func NewProcessor(threads ...*Thread) *P {
 	return &P{
 		threads: m,
 	}
+}
+
+func (p *P) AddThread(t *Thread) {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+
+	p.threads[t.ID()] = t
 }
 
 func (p *P) Threads() map[ThreadID]*Thread {

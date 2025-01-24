@@ -8,11 +8,17 @@ import (
 
 type Processor interface {
 	Start(ctx context.Context, wg *sync.WaitGroup)
+	Threads() map[ThreadID]*Thread
+	Thread(ID ThreadID) *Thread
+	Stop()
 }
 
 type P struct {
-	mu      sync.RWMutex
+	mu sync.RWMutex
+
 	threads map[ThreadID]*Thread
+
+	cancelFunc context.CancelFunc
 }
 
 func NewProcessor(threads ...*Thread) *P {
@@ -27,7 +33,27 @@ func NewProcessor(threads ...*Thread) *P {
 	}
 }
 
+func (p *P) Threads() map[ThreadID]*Thread {
+	p.mu.RLock()
+	defer p.mu.RUnlock()
+
+	return p.threads
+}
+
+func (p *P) Thread(ID ThreadID) *Thread {
+	p.mu.RLock()
+	defer p.mu.RUnlock()
+
+	return p.threads[ID]
+}
+
+func (p *P) Stop() {
+	p.cancelFunc()
+}
+
 func (p *P) Start(ctx context.Context, wg *sync.WaitGroup) {
+	ctx, p.cancelFunc = context.WithCancel(ctx)
+
 	wg.Add(1)
 	go func(ctx context.Context) {
 		defer wg.Done()

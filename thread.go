@@ -118,13 +118,11 @@ func (t *Thread) Run(ctx context.Context, wg *sync.WaitGroup) {
 			if t.limit > 0 {
 				t.work(t.ctx)
 				t.limit--
+				if t.limit == 0 {
+					return
+				}
 			}
-			limit := t.limit
 			t.mu.Unlock()
-
-			if limit == 0 {
-				return
-			}
 		}
 	}
 }

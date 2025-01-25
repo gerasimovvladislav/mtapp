@@ -85,7 +85,7 @@ func (p *P) Start(ctx context.Context, wg *sync.WaitGroup) {
 					}
 
 					if !t.IsRunning() {
-						t.Run(ctx, wg)
+						go t.Run(ctx, wg)
 					}
 				}
 				p.mu.RUnlock()

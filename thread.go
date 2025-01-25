@@ -10,11 +10,12 @@ import (
 type Thread struct {
 	mu sync.RWMutex
 
-	id       ThreadID
-	process  *Process
-	interval time.Duration
-	limit    int
-	paused   bool
+	id        ThreadID
+	process   *Process
+	interval  time.Duration
+	limit     int
+	limitable bool
+	paused    bool
 
 	ctx        context.Context
 	cancelFunc context.CancelFunc
@@ -22,11 +23,12 @@ type Thread struct {
 
 func NewThread(ID ThreadID, p *Process, paused bool, interval time.Duration, limit int) *Thread {
 	return &Thread{
-		id:       ID,
-		process:  p,
-		paused:   paused,
-		interval: interval,
-		limit:    limit,
+		id:        ID,
+		process:   p,
+		paused:    paused,
+		limitable: limit > 0,
+		interval:  interval,
+		limit:     limit,
 	}
 }
 
@@ -115,12 +117,16 @@ func (t *Thread) Run(ctx context.Context, wg *sync.WaitGroup) {
 			}
 
 			t.mu.Lock()
-			if t.limit > 0 {
-				t.work(t.ctx)
-				t.limit--
-				if t.limit == 0 {
-					return
+			if t.limitable {
+				if t.limit > 0 {
+					t.work(t.ctx)
+					t.limit--
+					if t.limit == 0 {
+						return
+					}
 				}
+			} else {
+				t.work(t.ctx)
 			}
 			t.mu.Unlock()
 		}

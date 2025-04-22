@@ -85,6 +85,7 @@ func (p *P) Start(ctx context.Context, wg *sync.WaitGroup) {
 					}
 
 					if !t.IsRunning() {
+						wg.Add(1)
 						go t.Run(ctx, wg)
 					}
 				}

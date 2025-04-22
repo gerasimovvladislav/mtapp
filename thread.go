@@ -99,7 +99,6 @@ func (t *Thread) Run(ctx context.Context, wg *sync.WaitGroup) {
 
 	t.Start(ctx)
 
-	wg.Add(1)
 	defer wg.Done()
 
 	ticker := time.NewTicker(t.interval)
@@ -122,6 +121,7 @@ func (t *Thread) Run(ctx context.Context, wg *sync.WaitGroup) {
 					t.work(t.ctx)
 					t.limit--
 					if t.limit == 0 {
+						t.mu.Unlock()
 						return
 					}
 				}

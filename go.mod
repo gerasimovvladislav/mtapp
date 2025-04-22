@@ -1,6 +1,6 @@
 module github.com/gerasimovvladislav/mtapp
 
-go 1.22.1
+go 1.23.7
 
 require (
 	github.com/buaazp/fasthttprouter v0.1.1

@@ -15,8 +15,18 @@ func NewApp(processors ...Processor) *App {
 	}
 }
 
-func (a *App) Start(ctx context.Context, wg *sync.WaitGroup) {
+func (a *App) Start(ctx context.Context) {
+	wg := &sync.WaitGroup{}
+
 	for _, p := range a.processors {
 		p.Start(ctx, wg)
+	}
+
+	wg.Wait()
+}
+
+func (a *App) Stop() {
+	for _, p := range a.processors {
+		p.Stop()
 	}
 }

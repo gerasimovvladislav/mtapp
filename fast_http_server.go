@@ -2,7 +2,6 @@ package mtapp
 
 import (
 	"context"
-	"log/slog"
 
 	"github.com/valyala/fasthttp"
 )
@@ -56,10 +55,7 @@ func (s *FastHttpServer) run(
 	}()
 
 	go func() {
-		err := s.serve(server, listen)
-		if err != nil {
-			slog.Error("server listenAndServe failed", err)
-		}
+		_ = s.serve(server, listen)
 		cancel()
 	}()
 

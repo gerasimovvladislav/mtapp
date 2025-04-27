@@ -2,7 +2,6 @@ package mtapp
 
 import (
 	"context"
-	"log/slog"
 	"sync"
 	"time"
 )
@@ -81,7 +80,6 @@ func (t *Thread) Stop() {
 	t.Pause()
 	if t.cancelFunc != nil {
 		t.cancelFunc()
-		slog.Debug("Thread stopped", slog.String("id", string(t.id)))
 		t.cancelFunc = nil
 	}
 }
@@ -103,8 +101,6 @@ func (t *Thread) Run(ctx context.Context, wg *sync.WaitGroup) {
 
 	ticker := time.NewTicker(t.interval)
 	defer ticker.Stop()
-
-	slog.Debug("Thread started", slog.String("id", string(t.id)))
 
 	for {
 		select {

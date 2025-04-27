@@ -3,7 +3,6 @@ package mtapp
 import (
 	"context"
 	"fmt"
-	"log/slog"
 	"os"
 	"os/signal"
 	"strings"
@@ -28,15 +27,11 @@ func InitSignalHandler(
 		s := <-osSigCh
 		switch s {
 		case syscall.SIGHUP:
-			slog.Info("Received signal SIGHUP! Renew configs")
 		case syscall.SIGINT:
-			slog.Info("Received signal SIGINT! Process exited")
 			cancelFunc()
 		case syscall.SIGTERM:
-			slog.Info("Received signal SIGTERM! Process exited")
 			cancelFunc()
 		case syscall.SIGQUIT:
-			slog.Info("Received signal SIGQUIT! Process exited")
 			cancelFunc()
 		}
 	}()

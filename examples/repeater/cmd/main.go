@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"log/slog"
 	"time"
 
 	"github.com/gerasimovvladislav/mtapp"
@@ -15,6 +14,4 @@ func main() {
 
 	repeat := repeater.Init("Main", time.Millisecond, 3, repeater.Tick)
 	mtapp.NewApp(repeat).Start(ctx)
-
-	slog.Info("Application has been shutdown gracefully")
 }

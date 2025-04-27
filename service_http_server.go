@@ -2,7 +2,6 @@ package mtapp
 
 import (
 	"context"
-	"log/slog"
 	"net/http/pprof"
 
 	"github.com/buaazp/fasthttprouter"
@@ -37,7 +36,6 @@ func (s *ServiceHttpServer) ListenAndServe(ctx context.Context, listen string, e
 		router.GET(pprofUrlPrefix+"/profile", fasthttpadaptor.NewFastHTTPHandlerFunc(pprof.Profile))
 		router.GET(pprofUrlPrefix+"/symbol", fasthttpadaptor.NewFastHTTPHandlerFunc(pprof.Symbol))
 		router.GET(pprofUrlPrefix+"/trace", fasthttpadaptor.NewFastHTTPHandlerFunc(pprof.Trace))
-		slog.Warn("pprof routes registered", slog.String("name", pprofUrlPrefix))
 	}
 
 	return s.httpServer.run(ctx, router.Handler, listen)

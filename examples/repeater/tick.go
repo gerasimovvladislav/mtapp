@@ -2,7 +2,7 @@ package repeater
 
 import (
 	"context"
-	"log/slog"
+	"fmt"
 )
 
 var TickID = "Tick"
@@ -10,7 +10,7 @@ var TickID = "Tick"
 var Tick = func(ctx context.Context) (cancelFunc context.CancelFunc) {
 	ctx, cancelFunc = context.WithCancel(ctx)
 
-	slog.Info("Tick...")
+	fmt.Println("Tick...")
 
 	return
 }
